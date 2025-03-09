@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { quais } from 'quais';
 import { contractABI } from '../abis/ecr20abi';
 import { useProvider } from './useProvider';

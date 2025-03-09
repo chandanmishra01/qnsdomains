@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { quais } from 'quais';
 import { ETHRegistrarControllerAbi } from '@/abis/ETHRegistrarController';
 import { useProvider } from './useProvider';

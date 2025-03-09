@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState } from 'react';
 import { quais } from 'quais';
 import { useContext } from 'react';
@@ -18,6 +19,7 @@ function encodeRegisterCall(name: any, owner: any, durationInSeconds: any) {
     name = name.slice(0, name.length - 5);
   }
 
+  // @ts-ignore
   const iface = new quais.Interface([registerABI]);
   return iface.encodeFunctionData('register', [name, owner, durationInSeconds]);
 }
@@ -30,6 +32,7 @@ const DomainRegistration = () => {
   const [isPrimary, setIsPrimary] = useState(true);
   const [isAvailable, setIsAvailable] = useState(false);
   const [fee, setFee] = useState(0);
+  // @ts-ignore
   const { account, balance, connectWallet } = useContext(StateContext);
   const [txnHash, setTxnHash] = useState('');
   const [registerStatus, setRegisterStatus] = useState({

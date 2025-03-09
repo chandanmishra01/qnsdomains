@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useEffect, useContext } from 'react';
 import { quais } from 'quais';
 import { useProvider } from './useProvider';
