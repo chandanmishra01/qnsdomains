@@ -186,10 +186,10 @@ const DomainRegistration = () => {
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
       {/* Domain Icon/Image */}
       <div className="mb-8">
-        <div className="w-20 h-20 bg-gradient-to-r from-lime-400 to-green-500 rounded-full flex items-center justify-center">
-          <span className="text-2xl">😊</span>
-        </div>
-      </div>
+  <div className="w-20 h-20 bg-gradient-to-r from-red-800 to-red-600 rounded-full flex items-center justify-center">
+    <span className="text-2xl">🌐</span>
+  </div>
+</div>
 
       {/* Domain Name */}
       <h1 className="text-2xl font-bold mb-2">{domainName}.quai</h1>
@@ -394,7 +394,7 @@ const DomainRegistration = () => {
                   <div className="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                     <span className="text-lg">Primary</span>
                     <div
-                      className={`w-12 h-6 rounded-full flex items-center ${isPrimary ? 'bg-green-600 justify-end' : 'bg-gray-700 justify-start'} p-1 cursor-pointer`}
+                      className={`w-12 h-6 rounded-full flex items-center ${isPrimary ? 'bg-red-700 justify-end' : 'bg-gray-700 justify-start'} p-1 cursor-pointer`}
                       onClick={togglePrimary}
                     >
                       <div className="h-4 w-4 bg-white rounded-full"></div>

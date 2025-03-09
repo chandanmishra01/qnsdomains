@@ -34,10 +34,10 @@ const DomainRegistration = () => {
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
       {/* Domain Icon/Image */}
       <div className="mb-8">
-        <div className="w-20 h-20 bg-gradient-to-r from-lime-400 to-green-500 rounded-full flex items-center justify-center">
-          <span className="text-2xl">😊</span>
-        </div>
-      </div>
+  <div className="w-20 h-20 bg-gradient-to-r from-red-800 to-red-600 rounded-full flex items-center justify-center">
+    <span className="text-2xl">🌐</span>
+  </div>
+</div>
       
       {/* Domain Name */}
       <h1 className="text-2xl font-bold mb-2">{domainName}</h1>
