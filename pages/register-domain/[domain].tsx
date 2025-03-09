@@ -308,7 +308,7 @@ const DomainRegistration = () => {
                   <button
                     className="px-4 py-2 text-sm border border-gray-400 w-fit bg-gray-800 hover:bg-gray-700 rounded-full"
                     onClick={() => {
-                      window.open(`https://explorer.qom.chain/tx/${txnHash}`, '_blank');
+                      window.open(`https://orchard.quaiscan.io/tx/${txnHash}`, '_blank');
                     }}
                   >
                     View on Explorer
@@ -317,7 +317,7 @@ const DomainRegistration = () => {
                     className="px-4 py-2 text-sm border border-gray-400 w-fit bg-gray-800 hover:bg-gray-700 rounded-full"
                     onClick={() => {
                       resetAndClose();
-                      router.push(`/registered/${domainName}`);
+                      router.push(`/`);
                     }}
                   >
                     Continue
