@@ -10,9 +10,5 @@ export const useContract = async () => {
   // create a contract
   const contract = new quais.Contract(contractAddress, contractABI, provider);
 
-  // // call a read-only contract function
-  // const symbol = await contract.symbol();
-  // console.log("VANSH SYMBOL IS", symbol);
-
   return provider;
 };

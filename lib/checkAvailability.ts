@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { quais } from 'quais';
+import {quais} from 'quais';
 import BigNumber from 'bignumber.js';
 import { useProvider } from './useProvider';
 import { baseRegistrarImplementationAbi } from '@/abis/BaseImplementation';
@@ -7,9 +7,9 @@ var namehash = require('eth-ens-namehash')
 
 
 function generateTokenId(inputName: any) {
-  if (inputName.endsWith('quai')) {
+  if (inputName.endsWith('.quai')) {
     // throw new Error("Contains tld")
-    const inputNameNoTld = inputName.slice(0, inputName.length - 4);
+    const inputNameNoTld = inputName.slice(0, inputName.length - 5);
     const tid = quais.keccak256(quais.toUtf8Bytes(inputNameNoTld));
     const tidNum = new BigNumber(tid).toFormat().replaceAll(',', '');
     return tidNum;
@@ -23,7 +23,7 @@ function generateTokenId(inputName: any) {
 }
 
 export const checkAvailability = async (label: any) => {
-  const contractAddress = '0x00699ee782cb24b7d466E690ec2d14A91B7C636c';
+  const contractAddress = '0x004f00be85d2d0AE4316026c25E93C8Da74A68B8';
   const provider = useProvider();
 
   const contract = new quais.Contract(contractAddress, baseRegistrarImplementationAbi, provider);

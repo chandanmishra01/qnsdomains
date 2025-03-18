@@ -72,7 +72,7 @@ const DomainRegistration = () => {
           </div>
           
           <p className="text-gray-400 text-sm mt-4">
-            NOTE: Extending for multiple years saves on network costs by avoiding yearly transactions.
+               
           </p>
         </div>
         

@@ -16,8 +16,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>Quai Network Sample Dapp</title>
-        <meta name="description" content="A sample dapp built on Quai Network." />
+        <title>QnsDomains|QUAI Name Service</title>
+        <meta name="description" content="Quai Naming Service Qns.Quai" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

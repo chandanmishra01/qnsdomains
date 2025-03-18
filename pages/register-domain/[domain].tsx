@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { quais } from 'quais';
 import { useContext } from 'react';
 import { StateContext } from '@/store';
@@ -10,18 +10,42 @@ import { ETHRegistrarControllerAbi } from '@/abis/ETHRegistrarController';
 import { checkAvailability } from '@/lib/checkAvailability';
 import Image from 'next/image';
 
-function encodeRegisterCall(name: any, owner: any, durationInSeconds: any) {
+// Escape/encode domain names to handle special cases
+function encodeNameForContract(name: string): string {
+  // First, remove the .quai TLD if present
+  let processedName = name;
+  if (processedName.endsWith('.quai')) {
+    processedName = processedName.substring(0, processedName.length - 5);
+  }
+
+  // // If the name contains "quai", we need to specially encode it
+  // // Using hex encoding to prevent issues with the contract interpretation
+  // if (processedName.includes('quai')) {
+  //   // Convert to hex bytes array (a workaround for quai sensitivity)
+  //   const nameBytes = new TextEncoder().encode(processedName);
+  //   const hexName = Array.from(nameBytes).map(b => ('0' + b.toString(16)).slice(-2)).join('');
+  //   const encodedName = '0x' + hexName;
+  //   console.log(`Name contains "quai", encoded to hex: "${encodedName}"`);
+  //   return encodedName;
+  // }
+  return processedName;
+}
+
+function encodeRegisterCall(name: string, owner: string, durationInSeconds: number) {
   const registerABI = ETHRegistrarControllerAbi.find(
     item => item.name === 'register' && item.inputs.length === 3 && item.stateMutability === 'payable'
   );
 
-  if (name.endsWith('quai')) {
-    name = name.slice(0, name.length - 5);
-  }
+  // Process name using our special encoder for quai-containing domains
+  const processedName = encodeNameForContract(name);
 
   // @ts-ignore
   const iface = new quais.Interface([registerABI]);
-  return iface.encodeFunctionData('register', [name, owner, durationInSeconds]);
+
+  // The smart contract might be expecting a special format for quai-containing domains
+  // Let's make sure the ABI is correctly encoding the name parameter
+  const encodedData = iface.encodeFunctionData('register', [processedName, owner, durationInSeconds]);
+  return encodedData;
 }
 
 const DomainRegistration = () => {
@@ -40,21 +64,48 @@ const DomainRegistration = () => {
     success: false,
     error: false,
   });
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Parse domain name from URL
-  var domainName = domain ? String(domain) : '';
+  // State for domain names
+  const [displayName, setDisplayName] = useState(''); // For display purposes (includes .quai)
+  const [nameToCheck, setNameToCheck] = useState(''); // For availability check
+
+  // Process domain name once router is ready
+  useEffect(() => {
+    if (router.isReady && domain) {
+      const inputDomain = String(domain);
+
+      // Ensure the display name has .quai suffix
+      const fullDisplayName = inputDomain.endsWith('.quai') ? inputDomain : `${inputDomain}.quai`;
+      setDisplayName(fullDisplayName);
+
+      // Process name for availability checking - IMPORTANT: use the same logic for both check and registration
+      let nameForCheck = fullDisplayName;
+      if (nameForCheck.endsWith('.quai')) {
+        nameForCheck = nameForCheck.substring(0, nameForCheck.length - 5);
+      }
+      setNameToCheck(nameForCheck);
+    }
+  }, [router.isReady, domain]);
 
   // Calculate fee based on years
-  useRentFees(domainName, yearCount).then(fees => {
-    setFee(Number(quais.formatQuai(fees)));
-  });
+  useEffect(() => {
+    if (displayName) {
+      useRentFees(displayName, yearCount).then(fees => {
+        const formattedFee = Number(quais.formatQuai(fees));
+        setFee(formattedFee);
+      });
+    }
+  }, [displayName, yearCount]);
 
-  if (domainName.endsWith('quai')) {
-    domainName = domainName.slice(0, domainName.length - 5);
-  }
-  checkAvailability(domainName).then(result => {
-    setIsAvailable(result);
-  });
+  // Check availability
+  useEffect(() => {
+    if (nameToCheck) {
+      checkAvailability(nameToCheck).then(result => {
+        setIsAvailable(result);
+      });
+    }
+  }, [nameToCheck]);
 
   // Increment/decrement year counter
   const incrementYears = () => {
@@ -82,6 +133,9 @@ const DomainRegistration = () => {
 
   // Handle confirmation in modal
   const handleConfirm = async () => {
+    // Reset error message
+    setErrorMessage('');
+
     // Set loading state
     setRegisterStatus({
       loading: true,
@@ -91,7 +145,7 @@ const DomainRegistration = () => {
 
     if (!account || !account.addr) {
       console.error('No account connected');
-      console.log('No account connected. Please connect your wallet.');
+      setErrorMessage('No account connected. Please connect your wallet.');
       setRegisterStatus({
         loading: false,
         success: false,
@@ -102,7 +156,7 @@ const DomainRegistration = () => {
 
     if (!window.pelagus) {
       console.error('Pelagus not found');
-      console.log('Pelagus wallet not found. Please install Pelagus extension.');
+      setErrorMessage('Pelagus wallet not found. Please install Pelagus extension.');
       setRegisterStatus({
         loading: false,
         success: false,
@@ -112,16 +166,20 @@ const DomainRegistration = () => {
     }
 
     try {
-      const encodedata = encodeRegisterCall(domainName, account?.addr, yearCount * 31536000);
 
-      console.log(encodedata);
+      // Use the display name (which will be processed inside the function)
+      const encodedata = encodeRegisterCall(displayName, account?.addr, yearCount * 31536000);
+
       const feeinWei = quais.parseQuai(fee.toString());
       const valueHex = '0x' + feeinWei.toString(16);
+
       const txData = {
         from: account.addr, // The user's address
-        to: '0x001A260BEF07ce24Fc5288B4C1d08537C7B04463', // Contract address
+        to: '0x000D79133C15D76677df001CB5aE60fE809AF976', // Contract address
         value: valueHex, // Required when sending quai to an externally owned account
         data: encodedata, // encoded function call data
+        // Try adding gas limit explicitly
+        gas: '0x55555', // Providing a higher gas limit as a potential fix
       };
 
       await window.pelagus
@@ -130,8 +188,6 @@ const DomainRegistration = () => {
           params: [txData],
         })
         .then((txHash: any) => {
-          console.log('Transaction Hash: ', txHash);
-          console.log(`Transaction submitted! Hash: ${txHash}`);
 
           // Set txnHash and success state after a delay to simulate processing
           setTxnHash(txHash);
@@ -145,8 +201,8 @@ const DomainRegistration = () => {
           }, 5000);
         })
         .catch((error: any) => {
-          console.error(error);
-          console.log(`Transaction failed: ${error.message}`);
+          console.error('Transaction error:', error);
+          setErrorMessage(error.message || 'Transaction failed. Please try again.');
           setRegisterStatus({
             loading: false,
             success: false,
@@ -154,11 +210,9 @@ const DomainRegistration = () => {
           });
         });
 
-      console.log(
-        `Confirmed registration for ${domainName} for ${yearCount} years as ${isPrimary ? 'primary' : 'secondary'} name`
-      );
     } catch (error: any) {
-      console.log(error);
+      console.error('Unexpected error:', error);
+      setErrorMessage(error.message || 'An unexpected error occurred.');
       setRegisterStatus({
         loading: false,
         success: false,
@@ -179,6 +233,7 @@ const DomainRegistration = () => {
       success: false,
       error: false,
     });
+    setErrorMessage('');
     setShowModal(false);
   };
 
@@ -186,13 +241,13 @@ const DomainRegistration = () => {
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
       {/* Domain Icon/Image */}
       <div className="mb-8">
-  <div className="w-20 h-20 bg-gradient-to-r from-red-800 to-red-600 rounded-full flex items-center justify-center">
-    <span className="text-2xl">🌐</span>
-  </div>
-</div>
+        <div className="w-20 h-20 bg-gradient-to-r from-red-800 to-red-600 rounded-full flex items-center justify-center">
+          <span className="text-2xl">🌐</span>
+        </div>
+      </div>
 
       {/* Domain Name */}
-      <h1 className="text-2xl font-bold mb-2">{domainName}.quai</h1>
+      <h1 className="text-2xl font-bold mb-2">{displayName}</h1>
 
       {/* Domain Hash (example) */}
       {account && account.addr && (
@@ -201,7 +256,7 @@ const DomainRegistration = () => {
 
       {/* Registration Form */}
       <div className="w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Register {domainName}.quai</h2>
+        <h2 className="text-xl font-bold mb-4">Register {displayName}</h2>
 
         {/* Year Selector */}
         <div className="bg-gray-900 rounded-lg p-4 mb-4">
@@ -289,7 +344,7 @@ const DomainRegistration = () => {
               <div className="flex flex-col justify-center">
                 <h3 className="text-xl font-semibold text-center">Transaction Successful</h3>
                 <p className="mt-2 mb-4 text-md text-center">
-                  Your registration transaction of {domainName} domain was successful
+                  Your registration transaction of {displayName} was successful
                 </p>
                 <div className="flex justify-center my-8">
                   <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
@@ -308,7 +363,7 @@ const DomainRegistration = () => {
                   <button
                     className="px-4 py-2 text-sm border border-gray-400 w-fit bg-gray-800 hover:bg-gray-700 rounded-full"
                     onClick={() => {
-                      window.open(`https://orchard.quaiscan.io/tx/${txnHash}`, '_blank');
+                      window.open(`https://quaiscan.io/tx/${txnHash}`, '_blank');
                     }}
                   >
                     View on Explorer
@@ -330,7 +385,7 @@ const DomainRegistration = () => {
             {registerStatus.error && (
               <div className="flex flex-col justify-center">
                 <h3 className="text-xl font-semibold text-center">Transaction Failed</h3>
-                <p className="mt-2 mb-4 text-md text-center">Something went wrong... Try Again!</p>
+                <p className="mt-2 mb-4 text-md text-center">{errorMessage || 'Something went wrong... Try Again!'}</p>
                 <div className="flex justify-center my-8">
                   <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center">
                     <svg
@@ -367,7 +422,7 @@ const DomainRegistration = () => {
                   {/* Name */}
                   <div className="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                     <span className="text-lg">Name</span>
-                    <span className="text-lg font-medium">{domainName}</span>
+                    <span className="text-lg font-medium">{displayName}</span>
                   </div>
 
                   {/* Action */}
@@ -401,6 +456,15 @@ const DomainRegistration = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Domain Name Warning */}
+                {nameToCheck.includes('quai') && (
+                  <div className="mt-4 p-3 bg-yellow-600 bg-opacity-25 rounded-lg">
+                    <p className="text-yellow-400 text-sm">
+                      Note: This domain name contains "quai" which may require special handling.
+                    </p>
+                  </div>
+                )}
 
                 {/* Confirm button */}
                 <button

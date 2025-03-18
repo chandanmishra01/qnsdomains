@@ -18,17 +18,15 @@ export const getDomainWitoutTld = (label: string) => {
 
 export const useRentFees = async (label: any, duration: any) => {
 
-  const contractAddress = "0x001A260BEF07ce24Fc5288B4C1d08537C7B04463"
+  const contractAddress = "0x000D79133C15D76677df001CB5aE60fE809AF976"
   const provider = useProvider()
   label = getDomainWitoutTld(label)
-  console.log("VANSH LABEL IS", label)
   duration *= 31536000
   // create a contract
   const contract = new quais.Contract(contractAddress, ETHRegistrarControllerAbi, provider);
 
   // // call a read-only contract function
   // const symbol = await contract.symbol();
-  // console.log("VANSH SYMBOL IS", symbol);
   const rentPrice = await contract.rentPrice(label, duration)
 
   return rentPrice[0];

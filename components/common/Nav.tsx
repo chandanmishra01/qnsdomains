@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useContext, useState } from 'react';
 import Image from 'next/image';
 
@@ -15,10 +16,10 @@ const NavButtonContent = [
     name: 'Home',
     link: '/',
   },
-  // {
-  //   name: 'My Account',
-  //   link: '/account',
-  // },
+  {
+    name: 'My Account',
+    link: '/account',
+  },
   // {
   //   name: 'Tokens',
   //   link: '/tokens',
