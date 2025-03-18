@@ -458,13 +458,13 @@ const DomainRegistration = () => {
                 </div>
 
                 {/* Domain Name Warning */}
-                {nameToCheck.includes('quai') && (
+                {/* {nameToCheck.includes('quai') && (
                   <div className="mt-4 p-3 bg-yellow-600 bg-opacity-25 rounded-lg">
                     <p className="text-yellow-400 text-sm">
                       Note: This domain name contains "quai" which may require special handling.
                     </p>
                   </div>
-                )}
+                )} */}
 
                 {/* Confirm button */}
                 <button
